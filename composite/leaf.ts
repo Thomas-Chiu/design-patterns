@@ -5,4 +5,4 @@ const bike: Bike = {
     return "hello add";
   },
 };
-console.error(bike.add());
+console.log(bike.add());
