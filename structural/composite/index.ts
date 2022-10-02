@@ -1,69 +1,70 @@
 // Component interface
-abstract class Part {
-  protected parent!: Part | null;
-  protected type: string;
+interface Component {
+  add(component: Component): void;
+  remove(component: Component): void;
+  show(): void;
+}
+
+// Leaf
+class Part implements Component {
+  private type: string;
+
+  constructor(type: string) {
+    this.type = type;
+  }
+  public add(): void {}
+  public remove(): void {}
+  public show(): void {
+    console.log(`Part: ${this.type}`);
+  }
+}
+
+// Composite
+class Combo implements Component {
+  private type: string;
+  private children: Component[] = [];
 
   constructor(type: string) {
     this.type = type;
   }
 
-  public setParent(parent: Part | null) {
-    this.parent = parent;
-  }
-
-  public add(component: Part): void {}
-
-  public remove(component: Part): void {}
-
-  public abstract getPartType(): string;
-}
-
-// Leaf
-class SinglePart extends Part {
-  public getPartType(): string {
-    return this.type!;
-  }
-}
-
-// Composite
-class ComboPart extends Part {
-  protected children: Part[] = [];
-
-  public add(component: Part): void {
+  add(component: Component): void {
     this.children.push(component);
-    component.setParent(this);
   }
-
-  public remove(component: Part): void {
-    const componentIndex = this.children.indexOf(component);
-    this.children.splice(componentIndex, 1);
-    component.setParent(null);
+  remove(component: Component): void {
+    const targetIndex = this.children.indexOf(component);
+    this.children.splice(targetIndex, 1);
   }
-
-  public getPartType(): string {
-    const results: string[] = [];
+  show(): void {
+    console.log(`Combo(${this.type}), includes: `);
     for (const child of this.children) {
-      results.push(child.getPartType());
+      child.show();
     }
-    return `${this.type}(${results.join(" + ")})`;
   }
 }
 
 // Client
-const whatIsThis = (component: Part) => {
-  console.log(`RESULT: ${component.getPartType()}`);
-};
-const battery = new SinglePart("battery");
-const controller = new SinglePart("controller");
-const bpb250 = new ComboPart("comboPart");
+const battery = new Part("battery");
+const controller = new Part("controller");
+const bpb250 = new Combo("battery");
 bpb250.add(battery);
 bpb250.add(controller);
-whatIsThis(battery); // RESULT: battery
-whatIsThis(controller); // RESULT: controller
-whatIsThis(bpb250); // RESULT: comboPart(battery + controller)
+bpb250.show();
+/*
+  Combo(battery), includes:
+  Part: battery
+  Part: controller
+ */
 
-const hmi = new SinglePart("hmi");
-const eTrekking = new ComboPart("Etrekking");
-eTrekking.add(bpb250);
+const hmi = new Part("HMI");
+const eTrekking = new Combo("eTrekking");
 eTrekking.add(hmi);
-whatIsThis(eTrekking); // RESULT: Etrekking(comboPart(battery + controller) + hmi)
+eTrekking.add(bpb250);
+eTrekking.show();
+/**
+  Combo(eTrekking), includes:
+  Part: HMI
+  Combo(battery), includes:
+  Part: battery
+  Part: controller
+ */
