@@ -40,10 +40,6 @@ class ComboPart extends Part {
     component.setParent(null);
   }
 
-  public isComposite(): boolean {
-    return true;
-  }
-
   public getPartType(): string {
     const results: string[] = [];
     for (const child of this.children) {
