@@ -1,102 +1,79 @@
-/**
- * The Handler interface declares a method for building the chain of handlers.
- * It also declares a method for executing a request.
- */
-interface Handler {
-  setNext(handler: Handler): Handler;
+// Handler
+abstract class Boss {
+  private superior?: Boss;
+  private name: string;
 
-  handle(request: string): string;
+  constructor(name: string) {
+    this.name = name;
+  }
+  public setSuperior(superior: Boss) {
+    this.superior = superior;
+  }
+  public getSuperior() {
+    return this.superior;
+  }
+  public approve(days: number) {
+    console.log(`${this.name} approved your ${days} days off`);
+  }
+  public reject() {
+    console.log("You have been rejected");
+  }
+  public abstract handleRequest(days: number): void;
 }
 
-/**
- * The default chaining behavior can be implemented inside a base handler class.
- */
-abstract class AbstractHandler implements Handler {
-  private nextHandler: Handler;
-
-  public setNext(handler: Handler): Handler {
-    this.nextHandler = handler;
-    // Returning a handler from here will let us link handlers in a
-    // convenient way like this:
-    // monkey.setNext(squirrel).setNext(dog);
-    return handler;
-  }
-
-  public handle(request: string): string {
-    if (this.nextHandler) {
-      return this.nextHandler.handle(request);
-    }
-
-    return null;
-  }
-}
-
-/**
- * All Concrete Handlers either handle a request or pass it to the next handler
- * in the chain.
- */
-class MonkeyHandler extends AbstractHandler {
-  public handle(request: string): string {
-    if (request === "Banana") {
-      return `Monkey: I'll eat the ${request}.`;
-    }
-    return super.handle(request);
-  }
-}
-
-class SquirrelHandler extends AbstractHandler {
-  public handle(request: string): string {
-    if (request === "Nut") {
-      return `Squirrel: I'll eat the ${request}.`;
-    }
-    return super.handle(request);
-  }
-}
-
-class DogHandler extends AbstractHandler {
-  public handle(request: string): string {
-    if (request === "MeatBall") {
-      return `Dog: I'll eat the ${request}.`;
-    }
-    return super.handle(request);
-  }
-}
-
-/**
- * The client code is usually suited to work with a single handler. In most
- * cases, it is not even aware that the handler is part of a chain.
- */
-function clientCode(handler: Handler) {
-  const foods = ["Nut", "Banana", "Cup of coffee"];
-
-  for (const food of foods) {
-    console.log(`Client: Who wants a ${food}?`);
-
-    const result = handler.handle(food);
-    if (result) {
-      console.log(`  ${result}`);
+// ConcreteHandler
+class TeamLeader extends Boss {
+  public handleRequest(days: number): void {
+    if (days < 3) {
+      this.approve(days);
+    } else if (this.getSuperior()) {
+      this.getSuperior()?.handleRequest(days);
     } else {
-      console.log(`  ${food} was left untouched.`);
+      this.reject();
+    }
+  }
+}
+class DeptManager extends Boss {
+  public handleRequest(days: number): void {
+    if (days < 5) {
+      this.approve(days);
+    } else if (this.getSuperior()) {
+      this.getSuperior()?.handleRequest(days);
+    } else {
+      this.reject();
+    }
+  }
+}
+class HrManager extends Boss {
+  public handleRequest(days: number): void {
+    if (days < 7) {
+      this.approve(days);
+    } else if (this.getSuperior()) {
+      this.getSuperior()?.handleRequest(days);
+    } else {
+      this.reject();
     }
   }
 }
 
+// Client
+const applyDayOff = (days: number) => {
+  const teamLeader = new TeamLeader("Serge");
+  const deptManager = new DeptManager("Jovi");
+  const hrManager = new HrManager("Amy");
+
+  teamLeader.setSuperior(deptManager);
+  deptManager.setSuperior(hrManager);
+  teamLeader.handleRequest(days);
+};
+
+applyDayOff(2);
+applyDayOff(4);
+applyDayOff(6);
+applyDayOff(8);
 /**
- * The other part of the client code constructs the actual chain.
+Serge approved your 2 days off
+Jovi approved your 4 days off
+Amy approved your 6 days off
+You have been rejected
  */
-const monkey = new MonkeyHandler();
-const squirrel = new SquirrelHandler();
-const dog = new DogHandler();
-
-monkey.setNext(squirrel).setNext(dog);
-
-/**
- * The client should be able to send a request to any handler, not just the
- * first one in the chain.
- */
-console.log("Chain: Monkey > Squirrel > Dog\n");
-clientCode(monkey);
-console.log("");
-
-console.log("Subchain: Squirrel > Dog\n");
-clientCode(squirrel);
