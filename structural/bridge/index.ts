@@ -1,82 +1,56 @@
-/**
- * The Abstraction defines the interface for the "control" part of the two class
- * hierarchies. It maintains a reference to an object of the Implementation
- * hierarchy and delegates all of the real work to this object.
- */
-class Abstraction {
-  protected implementation: Implementation;
-
-  constructor(implementation: Implementation) {
-    this.implementation = implementation;
-  }
-
-  public operation(): string {
-    const result = this.implementation.operationImplementation();
-    return `Abstraction: Base operation with:\n${result}`;
-  }
+// Implementor
+interface Country {
+  getLimit(): string;
 }
 
-/**
- * You can extend the Abstraction without changing the Implementation classes.
- */
-class ExtendedAbstraction extends Abstraction {
-  public operation(): string {
-    const result = this.implementation.operationImplementation();
-    return `ExtendedAbstraction: Extended operation with:\n${result}`;
+// ConcreteImplementor
+class Japan implements Country {
+  private limit: number;
+
+  constructor(limit: number) {
+    this.limit = limit;
+  }
+  public getLimit(): string {
+    return `JP: ${this.limit} km/h`;
   }
 }
 
-/**
- * The Implementation defines the interface for all implementation classes. It
- * doesn't have to match the Abstraction's interface. In fact, the two
- * interfaces can be entirely different. Typically the Implementation interface
- * provides only primitive operations, while the Abstraction defines higher-
- * level operations based on those primitives.
- */
-interface Implementation {
-  operationImplementation(): string;
+// Abstraction
+abstract class BikeModel {
+  protected country: Country;
+
+  constructor(country: Country) {
+    this.country = country;
+  }
+  public abstract showLimit(): void;
 }
 
-/**
- * Each Concrete Implementation corresponds to a specific platform and
- * implements the Implementation interface using that platform's API.
- */
-class ConcreteImplementationA implements Implementation {
-  public operationImplementation(): string {
-    return "ConcreteImplementationA: Here's the result on the platform A.";
+// RefinedAbstraction
+class TownieGo extends BikeModel {
+  public showLimit(): void {
+    console.log(`Townie Go ${this.country.getLimit()}`);
+  }
+}
+class Carrera extends BikeModel {
+  public showLimit(): void {
+    console.log(`Carrera ${this.country.getLimit()}`);
   }
 }
 
-class ConcreteImplementationB implements Implementation {
-  public operationImplementation(): string {
-    return "ConcreteImplementationB: Here's the result on the platform B.";
+// Client
+class JpBike {
+  public static showBike(): void {
+    const jp = new Japan(22);
+    const townieGo = new TownieGo(jp);
+    const carrera = new Carrera(jp);
+
+    townieGo.showLimit();
+    carrera.showLimit();
   }
 }
 
+JpBike.showBike();
 /**
- * Except for the initialization phase, where an Abstraction object gets linked
- * with a specific Implementation object, the client code should only depend on
- * the Abstraction class. This way the client code can support any abstraction-
- * implementation combination.
+  Townie Go JP: 22 km/h
+  Carrera JP: 22 km/h
  */
-function clientCode(abstraction: Abstraction) {
-  // ..
-
-  console.log(abstraction.operation());
-
-  // ..
-}
-
-/**
- * The client code should be able to work with any pre-configured abstraction-
- * implementation combination.
- */
-let implementation = new ConcreteImplementationA();
-let abstraction = new Abstraction(implementation);
-clientCode(abstraction);
-
-console.log("");
-
-implementation = new ConcreteImplementationB();
-abstraction = new ExtendedAbstraction(implementation);
-clientCode(abstraction);

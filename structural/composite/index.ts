@@ -27,15 +27,14 @@ class Combo implements Component {
   constructor(type: string) {
     this.type = type;
   }
-
-  add(component: Component): void {
+  public add(component: Component): void {
     this.children.push(component);
   }
-  remove(component: Component): void {
+  public remove(component: Component): void {
     const targetIndex = this.children.indexOf(component);
     this.children.splice(targetIndex, 1);
   }
-  show(): void {
+  public show(): void {
     console.log(`Combo(${this.type}), includes: `);
     for (const child of this.children) {
       child.show();
