@@ -45,7 +45,6 @@ class ComboPart extends Part {
     for (const child of this.children) {
       results.push(child.getPartType());
     }
-
     return `${this.type}(${results.join(" + ")})`;
   }
 }
